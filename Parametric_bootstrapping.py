@@ -4,6 +4,7 @@ from iminuit.cost import ExtendedUnbinnedNLL
 from scipy.stats import crystalball, norm, expon
 import matplotlib.pyplot as plt
 import numpy as np
+import multiprocessing
 
 mu_true = 3
 sigma_true = 0.3
@@ -108,10 +109,14 @@ def main():
     original_sample = generate(100000, f_true, beta_true, m_true, mu_true, sigma_true, lam_true, mu_b_true, sigma_b_true)
     original_values = fit(original_sample, 100000, f_true, beta_true, m_true, mu_true, sigma_true, lam_true, mu_b_true, sigma_b_true)
     print(f"Original values: {original_values.values}")
-    for size in sample_sizes:
-         run_fit_toys(size,original_values.values,250)
+    # for size in sample_sizes:
+    #      run_fit_toys(size,original_values.values,250)
 
     # Use multiprocessing to run the function in parallel
+    # Parallelizing the loop using multiprocessing
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        pool.starmap(run_fit_toys, [(size, original_values.values, 250) for size in sample_sizes])
+
 if __name__ == '__main__':
     main()
 
