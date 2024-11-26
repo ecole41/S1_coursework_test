@@ -5,6 +5,7 @@ from scipy.stats import crystalball, norm, expon
 import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing
+import os
 
 mu_true = 3
 sigma_true = 0.3
@@ -87,18 +88,26 @@ def fit_toys(Ntoy,sample_size,f,beta,m,mu,sigma,lam,mu_b,sigma_b):
 
 
 def run_fit_toys(sample_size,original_values,Ntoy):
+        folder_name = "Parametric_Bootstrapping_Data"
+
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+            print(f"Created folder: {folder_name}")
+
         print(f"Running fit_toys for sample size: {sample_size}")
         f,beta, m, mu, sigma, lam, mu_b, sigma_b = original_values[1:] # Get the initial values
         values, errors = fit_toys(Ntoy, sample_size, f=f, beta=beta, m=m, mu=mu, sigma=sigma, lam=lam, mu_b=mu_b, sigma_b=sigma_b)
-        # Create a filename based on sample_size
-        filename = f"{sample_size}_values_and_errors_bootstrapping.txt"
+       
+        filename = os.path.join(folder_name, f"{sample_size}_values_and_errors.txt")
+    
+    
         # Save values and errors to the file
         with open(filename, 'w') as file:
             file.write(f"Sample size: {sample_size}\n")
             file.write("Values:\n")
-            file.write(f"{values}\n")  # Write the values (you can format this as needed)
+            file.write(f"{values}\n")  # Write the values
             file.write("Errors:\n")
-            file.write(f"{errors}\n")  # Write the errors (you can format this as needed)
+            file.write(f"{errors}\n")  # Write the errors
         print(f"Results saved to {filename}")
         return sample_size
 
