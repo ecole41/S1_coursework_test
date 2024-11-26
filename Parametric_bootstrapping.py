@@ -100,7 +100,6 @@ def run_fit_toys(sample_size,original_values,Ntoy):
        
         filename = os.path.join(folder_name, f"{sample_size}_values_and_errors.txt")
     
-    
         # Save values and errors to the file
         with open(filename, 'w') as file:
             file.write(f"Sample size: {sample_size}\n")
