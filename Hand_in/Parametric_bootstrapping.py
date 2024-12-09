@@ -16,6 +16,21 @@ lam_true= 0.3
 mu_b_true = 0
 sigma_b_true = 2.5
 
+def save_original_values(values):
+    """Save original ('true') values to a file."""
+    folder_name = "Parametric_Bootstrapping_Data"
+
+    if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+            print(f"Created folder: {folder_name}")
+
+    filename = os.path.join(folder_name, "true_values.txt")
+
+    with open(filename, 'w') as file:
+        for name, value in zip(["N","f", "beta", "m", "mu", "sigma", "lam", "mu_b", "sigma_b"], values): 
+            file.write(f"{name}: {value}\n")
+    print(f"Saved original values to {filename}")
+
 def g_s(X,beta,m,mu,sigma):
     pdf=crystalball(beta,m,loc=mu,scale=sigma)
     norm_factor = pdf.cdf(5)-pdf.cdf(0)
@@ -129,6 +144,7 @@ def main():
     original_sample = generate(100000, f_true, beta_true, m_true, mu_true, sigma_true, lam_true, mu_b_true, sigma_b_true)
     original_values = fit(original_sample, 100000, f_true, beta_true, m_true, mu_true, sigma_true, lam_true, mu_b_true, sigma_b_true)
     print(f"Original values: {original_values.values}")
+    save_original_values(original_values.values)
     # for size in sample_sizes:
     #      run_fit_toys(size,original_values.values,250)
 
