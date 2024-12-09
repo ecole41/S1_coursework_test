@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing
 import os
+import pickle
 
 mu_true = 3
 sigma_true = 0.3
@@ -93,25 +94,31 @@ def fit_toys(Ntoy,sample_size,f,beta,m,mu,sigma,lam,mu_b,sigma_b):
     """
     values =[]
     errors = []
+    all_toys_data_points = []
+
     Num=np.random.poisson(sample_size, Ntoy)
     toys = [ generate(Num[_],f,beta,m,mu,sigma,lam,mu_b,sigma_b) for _ in range(Ntoy) ]
-    
+
     for toy_id in tqdm(range(Ntoy)):
         retries = 0
         
         while retries < 5:  #To avoid NAN error vlues, when minuit gets invalid fits -> doesn't converge
-            toy=toys[toy_id]
+            toy=toys[toy_id] # edit this such that it retries until a valid fit is found
             mi_t = fit(toy,sample_size,f,beta,m,mu,sigma,lam,mu_b,sigma_b)
             if np.all(np.isfinite(mi_t.values)) and np.all(np.isfinite(mi_t.errors)):
                 # If the fit is valid, append to values and errors and break the retry loop
                 values.append(list(mi_t.values))
                 errors.append(list(mi_t.errors))
+
+                accepted_points = np.array(toy)
+                all_toys_data_points.append([toy_id,accepted_points])
+                
                 break
             else:
                 retries += 1
                 print(f"Fit failed, retrying {retries}/5")
                 toys[toy_id] = generate(Num[toy_id],f,beta,m,mu,sigma,lam,mu_b,sigma_b)
-    return values, errors
+    return values, errors, all_toys_data_points
 
 
 def run_fit_toys(sample_size,original_values,Ntoy):
@@ -123,19 +130,28 @@ def run_fit_toys(sample_size,original_values,Ntoy):
 
         print(f"Running fit_toys for sample size: {sample_size}")
         f,beta, m, mu, sigma, lam, mu_b, sigma_b = original_values[1:] # Get the initial values
-        values, errors = fit_toys(Ntoy, sample_size, f=f, beta=beta, m=m, mu=mu, sigma=sigma, lam=lam, mu_b=mu_b, sigma_b=sigma_b)
+        values, errors, data_points = fit_toys(Ntoy, sample_size, f=f, beta=beta, m=m, mu=mu, sigma=sigma, lam=lam, mu_b=mu_b, sigma_b=sigma_b)
        
-        filename = os.path.join(folder_name, f"{sample_size}_values_and_errors.txt")
-    
-        # Save values and errors to the file
-        with open(filename, 'w') as file:
-            file.write(f"Sample size: {sample_size}\n")
-            file.write("Values:\n")
-            file.write(f"{values}\n")  # Write the values
-            file.write("Errors:\n")
-            file.write(f"{errors}\n")  # Write the errors
-        print(f"Results saved to {filename}")
-        return sample_size
+         # Define the filenames for the .npy files
+        values_filename = os.path.join(folder_name, f"{sample_size}_values.npy")
+        errors_filename = os.path.join(folder_name, f"{sample_size}_errors.npy")
+        data_points_folder = os.path.join(folder_name, f"{sample_size}_data_points")
+
+        if not os.path.exists(data_points_folder):
+            os.makedirs(data_points_folder)
+            print(f"Created folder: {data_points_folder}")
+
+        # Save values, errors, and data points as separate NumPy arrays
+        np.save(values_filename, values)
+        np.save(errors_filename, errors)
+        for toy in data_points:
+            np.save(os.path.join(data_points_folder, f"{sample_size}_data_points_{toy[0]}.npy"), toy[1])
+        
+        print(f"Values saved to {values_filename}")
+        print(f"Errors saved to {errors_filename}")
+        print(f"Data points saved to {data_points_folder}")
+
+        return 
 
 
 
