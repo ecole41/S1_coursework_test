@@ -19,8 +19,8 @@ Follow these steps to set up your Conda environment and run the Jupyter notebook
 Clone the repository to your local machine:
 
 ```bash
-git clone https://gitlab.developers.cam.ac.uk/phy/data-intensive-science-mphil/assessments/s1_coursework/egc41
-cd egc41
+git clone https://github.com/ecole41/S1_coursework_test
+cd copying_coursework
 conda env create --file environment.yml
 conda activate s1_env
 ```
